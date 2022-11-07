@@ -5,8 +5,8 @@ import re
 import unicodedata
 import math
 
-handyFile = 'HandyLibrary_new.csv'
-shopifyFile = 'handy_result_v1.csv'
+handyFile = 'HandyLibrary.csv'
+shopifyFile = 'handy_result_v2.csv'
 count = 0
 comma = ','
 blank = ' '
@@ -164,7 +164,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpRow.append('')  # 10
                 tmpRow.append('')  # 11
                 tmpRow.append('')  # 12
-                tmpRow.append(row[16]+"-"+row[25])  # 13
+                tmpRow.append(row[25])  # 13
                 tmpRow.append(P)  # 14
                 tmpRow.append('shopify')  # 15
                 tmpRow.append('1')  # 16
