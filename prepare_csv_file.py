@@ -1,10 +1,12 @@
 import csv
 import datetime
+from decimal import ROUND_UP, Decimal
 import re
 import unicodedata
+import math
 
-handyFile = 'HandyLibrary.csv'
-shopifyFile = 'example_result.csv'
+handyFile = 'HandyLibrary_new.csv'
+shopifyFile = 'handy_result_v1.csv'
 count = 0
 comma = ','
 blank = ' '
@@ -13,78 +15,88 @@ semicolon = ';'
 E = T = P = ''
 bonneEtat = 'Bon état'
 imparfait = 'Imparfait'
+neuf = 'Neuf'
+commeNeuf = 'Comme neuf'
 
-
-def manageAuthor(author):
+def manage_author(author):
     author = author.split(comma)
     author.reverse()
     author = blank.join(author)
     return author.strip()
 
 
-def vendorField(author):
+def vendor_field(author):
     author = author.split(semicolon)
     result = ''
     i = 0
     for current in author:
         if i > 0:
             result += comma + blank
-        result += manageAuthor(current)
+        result += manage_author(current)
         i += 1
     return result
 
 
-def ourPrice(price, condition):
-    if (condition == imparfait):
+def apply_discount(price, condition):
+    if (condition == neuf):
+        return price
+    elif (condition == imparfait):
         return price * 0.4
     elif (condition == bonneEtat):
         return price * 0.6
     return price * 0.8
 
 
-def extractFromCommentField(comment):
+def calculate_price(price, condition):
+    discount = float("{:.2f}".format(apply_discount(float(price), condition)))
+    amount = int(math.ceil(float(100 * discount) / 5)) * 5 / Decimal(100)
+    return "{:.2f}".format(Decimal(amount))
+
+def extract_from_comment_field(comment):
     global E, T, P
-    searchE = re.search('E (.+?)\n', comment)
-    if searchE:
-        E = searchE.group(1).strip()
-        if (E == 'C' or E == 'Comme neuf'):
-            E = 'Comme neuf'
+    search_e = re.search('E (.+?)\n', comment)
+    if search_e:
+        E = search_e.group(1).strip()
+        if (E == 'N' or E == 'Neuf'):
+            E = neuf
+        elif (E == 'C' or E == 'Comme neuf'):
+            E = commeNeuf
         elif (E == 'B' or E == 'Bon état'):
-            E = 'Bon état'
+            E = bonneEtat
         elif (E == 'I' or E == 'Imparfait'):
-            E = 'Imparfait'
+            E = imparfait
         else:
             raise ValueError(
                 "E which is Etat du livre should be a value between [C,B,I] and not '"+E+"'")
-    searchT = re.search('T (.+?)\n', comment)
-    if searchT:
-        T = searchT.group(1).strip()
-    searchP = re.search('P (\d+)$', comment)
-    if searchP:
-        P = searchP.group(1).strip()
+    search_t = re.search('T (.+?)\n', comment)
+    if search_t:
+        T = search_t.group(1).strip()
+    search_p = re.search('P (\d+)$', comment)
+    if search_p:
+        P = search_p.group(1).strip()
 
 
-def formatDateParution(dateToFormat: str) -> str:
-    if dateToFormat and (len(dateToFormat) > 3):
-        date_time_obj = datetime.datetime.strptime(dateToFormat[0:4], '%Y')
-        dateToFormat = date_time_obj.year
-        if dateToFormat < 1900 or dateToFormat > 2100:
-            print("Error in Date de parution, date not added : " + str(dateToFormat))
+def format_date_parution(date2format: str) -> str:
+    if date2format and (len(date2format) > 3):
+        date_time_obj = datetime.datetime.strptime(date2format[0:4], '%Y')
+        date2format = date_time_obj.year
+        if date2format < 1900 or date2format > 2100:
+            print("Error in Date de parution, date not added : " + str(date2format))
             return ""
-    return str(dateToFormat)
+    return str(date2format)
 
 
 def clean_list(s: str, isbn) -> str:
     return "".join([x for x in s if x.isalnum() or x.isspace() or x == '-']).strip().lower().replace('   ', '-').replace('  ', '-').replace(' ', '-') + "-" + isbn
 
 
-def checkIfEmpty(tag: str) -> str:
+def check_if_empty(tag: str) -> str:
     if tag.split():
         return tag + ", "
     return ""
 
 
-def convertAgeToTagLabel(age):
+def convert_age_to_tag_label(age):
     if age in ["0", "1", "2"]:
         return "Tout petit"
     elif age in ["3", "4", "5"]:
@@ -117,10 +129,10 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
             else:
                 count += 1
                 # Commentaires
-                extractFromCommentField(row[24])
+                extract_from_comment_field(row[24])
 
                 # Date de parution format YYYY
-                row[3] = formatDateParution(row[3])
+                row[3] = format_date_parution(row[3])
 
                 # Tags
                 tmpTags = []
@@ -130,7 +142,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpTags.append(row[3])
                 tmpTags.append(row[4])
                 tmpTags.append(row[6])
-                tmpTags.append(convertAgeToTagLabel(row[7]))
+                tmpTags.append(convert_age_to_tag_label(row[7]))
                 tmpTags.append(row[8])
                 tmpTags.append(row[18])
 
@@ -141,8 +153,8 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpRow.append(row[0])  # 1
                 # 2 Template dans equivalence fichier ligne 3
                 tmpRow.append(body.format(
-                    row[7], row[15], E, checkIfEmpty(T), checkIfEmpty(row[4].replace('roché', 'roché, couverture souple')), row[5], checkIfEmpty(row[2]), checkIfEmpty(row[6]), checkIfEmpty(row[3]), row[9], row[8]))
-                tmpRow.append(vendorField(row[1]))  # 3
+                    row[7], row[15], E, check_if_empty(T), check_if_empty(row[4].replace('roché', 'roché, couverture souple')), row[5], check_if_empty(row[2]), check_if_empty(row[6]), check_if_empty(row[3]), row[9], row[8]))
+                tmpRow.append(vendor_field(row[1]))  # 3
                 tmpRow.append(T)  # 4
                 tmpRow.append(comma.join(tmpTags))  # 5
                 tmpRow.append('TRUE')  # 6
@@ -152,7 +164,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpRow.append('')  # 10
                 tmpRow.append('')  # 11
                 tmpRow.append('')  # 12
-                tmpRow.append(row[16]+row[25])  # 13
+                tmpRow.append(row[16]+"-"+row[25])  # 13
                 tmpRow.append(P)  # 14
                 tmpRow.append('shopify')  # 15
                 tmpRow.append('1')  # 16
@@ -160,8 +172,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpRow.append('manual')  # 18
                 if row[17] == '':
                     row[17] = 0
-                tmpRow.append("{:.2f}".format(
-                    ourPrice(float(row[17]), E)))  # 19
+                tmpRow.append(calculate_price(row[17], E))  # 19
                 tmpRow.append(row[17])  # 20
                 tmpRow.append('TRUE')  # 21
                 tmpRow.append('FALSE')  # 22
