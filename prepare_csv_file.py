@@ -17,6 +17,7 @@ bonneEtat = 'Bon état'
 imparfait = 'Imparfait'
 neuf = 'Neuf'
 commeNeuf = 'Comme neuf'
+tresBonEtat = 'Très bon état'
 
 def manage_author(author):
     author = author.split(comma)
@@ -44,6 +45,8 @@ def apply_discount(price, condition):
         return price * 0.4
     elif (condition == bonneEtat):
         return price * 0.6
+    elif (condition == tresBonEtat):
+        return price * 0.7
     return price * 0.8
 
 
@@ -65,9 +68,11 @@ def extract_from_comment_field(comment):
             E = bonneEtat
         elif (E == 'I' or E == 'Imparfait'):
             E = imparfait
+        elif (E == 'T' or E == 'Très bon état'):
+            E = tresBonEtat
         else:
             raise ValueError(
-                "E which is Etat du livre should be a value between [C,B,I] and not '"+E+"'")
+                "E which is Etat du livre should be a value between [N,C,B,I,T] and not '"+E+"'")
     search_t = re.search('T (.+?)\n', comment)
     if search_t:
         T = search_t.group(1).strip()
