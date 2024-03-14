@@ -1,6 +1,10 @@
+"""
+Module providing an produced file to be integrated.
+"""
+
 import csv
 import datetime
-from decimal import ROUND_UP, Decimal
+from decimal import Decimal
 import re
 import unicodedata
 import math
