@@ -10,7 +10,7 @@ import unicodedata
 import math
 
 handyFile = 'HandyLibrary.csv'
-shopifyFile = 'handy_result_v2.csv'
+shopifyFile = 'handy_result.csv'
 count = 0
 comma = ','
 blank = ' '
@@ -116,13 +116,15 @@ def convert_age_to_tag_label(age):
         return "A partir de 9 ans"
     elif age in ["12", "13", "14"]:
         return "A partir de 12 ans"
-    elif age in ["15", "16", "17", "18"]:
+    elif age in ["15", "16", "17"]:
         return "Jeunes adultes"
-    return ""
+    return "Adulte"
 
+def age_spelling(age):
+    return age + " an" if (age == '0' or age == '1') else age + " ans"
 
 ###### BODY HTML ######
-body = "<p style=\"text-align: left;\"><span style=\"font-weight: 400;\"><meta charset=\"utf-8\"> <em>A partir de {} ans</em></span></p><p style=\"text-align: left;\"><span style=\"font-weight: 400;\">{}</span></p><p><span><em><meta charset=\"utf-8\">État : {}, <a href=\"https://williamcrocodile.com/pages/etat-des-livres\" target=\"_blank\" title=\"État des livres\" rel=\"noopener noreferrer\">en savoir plus</a></em></span></p><p><span><em><meta charset=\"UTF-8\">{}{}{} pages</em></span></p><p><span><em><meta charset=\"UTF-8\">{}{}{}ISBN : {}</em></span></p><p><span><em>Langue : {}</em></span></p>"
+body = "<p style=\"text-align: left;\"><span style=\"font-weight: 400;\"><meta charset=\"utf-8\"> <em>A partir de {}</em></span></p><p style=\"text-align: left;\"><span style=\"font-weight: 400;\">{}</span></p><p><span><em><meta charset=\"utf-8\">État : {}, <a href=\"https://williamcrocodile.com/pages/etat-des-livres\" target=\"_blank\" title=\"État des livres\" rel=\"noopener noreferrer\">en savoir plus</a></em></span></p><p><span><em><meta charset=\"UTF-8\">{}{}{} pages</em></span></p><p><span><em><meta charset=\"UTF-8\">{}{}{}ISBN : {}</em></span></p><p><span><em>Langue : {}</em></span></p>"
 
 ###### Write ######
 with open(handyFile, 'r', encoding='utf-8') as handCSV:
@@ -138,7 +140,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
             else:
                 count += 1
                 # Commentaires
-                extract_from_comment_field(row[24])
+                extract_from_comment_field(row[26])
 
                 # Date de parution format YYYY
                 row[3] = format_date_parution(row[3])
@@ -162,7 +164,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpRow.append(row[0])  # 1
                 # 2 Template dans equivalence fichier ligne 3
                 tmpRow.append(body.format(
-                    row[7], row[15], E, check_if_empty(T), check_if_empty(row[4].replace('roché', 'roché, couverture souple')), row[5], check_if_empty(row[2]), check_if_empty(row[6]), check_if_empty(row[3]), row[9], row[8]))
+                    age_spelling(row[7]), row[15], E, check_if_empty(T), check_if_empty(row[4].replace('roché', 'roché, couverture souple')), row[5], check_if_empty(row[2]), check_if_empty(row[6]), check_if_empty(row[3]), row[9], row[8]))
                 tmpRow.append(vendor_field(row[1]))  # 3
                 tmpRow.append(T)  # 4
                 tmpRow.append(comma.join(tmpTags))  # 5
@@ -173,7 +175,7 @@ with open(handyFile, 'r', encoding='utf-8') as handCSV:
                 tmpRow.append('')  # 10
                 tmpRow.append('')  # 11
                 tmpRow.append('')  # 12
-                tmpRow.append(row[25])  # 13
+                tmpRow.append(row[28])  # 13
                 tmpRow.append(P)  # 14
                 tmpRow.append('shopify')  # 15
                 tmpRow.append('1')  # 16
