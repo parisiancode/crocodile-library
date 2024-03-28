@@ -117,7 +117,7 @@ def convert_age_to_tag_label(age):
     elif age in ["12", "13", "14"]:
         return "A partir de 12 ans"
     elif age in ["15", "16", "17"]:
-        return "Jeunes adultes"
+        return "Jeunes adultes,Adulte"
     return "Adulte"
 
 def age_spelling(age):
